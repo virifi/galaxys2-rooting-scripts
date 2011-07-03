@@ -1,0 +1,94 @@
+GalaxyS2用のsu+Superuser.apk入りのfactoryfsイメージを作成するためのスクリプト群です。
+
+これらのスクリプトを実行するには、以下の4条件を満たしている必要があります。
+・OSがLinuxであること
+・root権限でコマンドを実行できること
+・perl, gcc, make, curl, unzipがインストールされていること
+・Android SDKがインストールされており、adbへのパスが通っていること
+
+<注意>
+2_pull_sytem_files.pl, 2.5_reset_permissions.pl, 3_pack_img.plの3つのスクリプトは
+実行する際root権限が必要です。実行する前にこれらのスクリプトの中にお使いのシステムに悪影響を
+与えるコードが含まれていないことを<<<必ず>>>確認してください。
+
+<特徴>
+今現在、GalaxyS2をroot化するには主に以下の2つの方法があります。
+・su入りfactoryfs.imgをネット上で入手して焼く
+・カスタムカーネルを焼く
+1番目の方法はネット上の面識のない人が作成したものを焼くことになるので、
+悪意のあるプログラムが混入されている可能性があり危険です。
+2番目の方法でも、自分で作成したものやソースが公開されているものならいいですが、
+ソースが公開されていないものを焼くことは危険です。
+このスクリプトの場合、GalaxyS2の/system以下のファイルをすべてadb pullで取り出し
+suとSuperuse.apkを加えてfactoryfsイメージを作成するという動作をしているのですが、
+すべて{shell|perl}スクリプトで実行しているので、動作を追うことができ、
+悪意のあるアプリが混入していないことが容易にわかります。
+（ただし、suとSuperuser.apkが悪意のある動作をする可能性は排除できませんが、
+この2つのプログラムをインストールすることはroot権限を得る上で必須なので仕方がありません。）
+
+
+<各ファイルの説明>
+[1_download_files.sh]
+イメージを作成するために必要な以下のファイルをダウンロードします。
+(root権限を取得するために必要なファイル)
+・su
+・Superuser.apk
+(adb pullで取り出すことのできないファイル)
+・/system/etc/dbus.conf
+・/system/etc/bluetooth/audio.conf
+・/system/etc/bluetooth/input.conf
+・/system/etc/bluetooth/main.conf
+・/system/etc/bluetooth/auto_pairing.conf
+auto_pairing.confだけGalaxyS2のものと異なるので、
+ダウンロードしたあとパッチを当てています。
+一般ユーザー権限で実行してください。
+
+[2_pull_system_files.pl]
+GalaxyS2から/systemディレクトリ以下のファイルを./systemに取り出し、
+パーミッション・ユーザーID・グループIDをGalaxyS2上でのそれらと同一にします。
+GalaxyS2が接続されている必要があります。
+root権限で実行してください。
+
+[2.5_reset_permissions.pl]
+./system以下のファイルのパーミッション・ユーザーID・グループIDを再度適切なものに設定します。
+2_pull_system_files.plでファイルを取り出したあと、
+./system以下のファイルに変更を加えた場合、実行する必要があります。
+GalaxyS2が接続されている必要があります。
+root権限で実行してください。
+
+[3_pack_img.pl]
+./system以下のファイルをもとにfactoryfsイメージを作成します。
+このイメージはheimdallで焼くことができます。
+root権限で実行してください。
+
+[3.5_create_odin_img.sh]
+3_pack_img.plでイメージをもとにODINで焼くことのできるイメージを作成します。
+root権限は必要ありません。
+
+[auto_pairing.conf.patch]
+GalaxyS2のものと同じauto_pairing.confを得るためのパッチです。
+
+<実行方法>
+ここではUbuntu11.04 x64での実行例を示します。
+[root権限を取得するだけの場合(heimdall)]
+$ ./1_download_files.sh
+$ sudo ./2_pull_system_files.pl
+$ sudo ./3_pack_img.pl
+$ heimdall flash --factoryfs ./factoryfs.img
+
+[root権限を取得するだけの場合(ODIN)]
+$ ./1_download_files.sh
+$ sudo ./2_pull_system_files.pl
+$ sudo ./3_pack_img.pl
+$ ./3.5_creat_odin_img.sh
+カレントディレクトリにFACTORYFS_SC02COMKF2.tar.md5が作成されるので、
+あとはこれをWindowsにコピーしてODINで焼けばよい。
+
+[framework-res.apkとDroidSansJapanese.ttfを変更する場合]
+$ ./1_download_files.sh
+$ sudo ./2_pull_system_files.pl
+$ sudo cp ./new/framework-res.apk ./system/framework/
+$ sudo cp ./new/yukarin.otf ./system/fonts/DroidSansJapanese.ttf
+$ sudo 2.5_reset_permissions.pl
+$ sudo 3_pack_img.pl
+$ heimdall flash --factoryfs ./factoryfs.img
