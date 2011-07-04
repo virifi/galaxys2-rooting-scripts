@@ -80,7 +80,7 @@ $ heimdall flash --factoryfs ./factoryfs.img
 $ ./1_download_files.sh
 $ sudo ./2_pull_system_files.pl
 $ sudo ./3_pack_img.pl
-$ ./3.5_creat_odin_img.sh
+$ ./3.5_create_odin_img.sh
 カレントディレクトリにFACTORYFS_SC02COMKF2.tar.md5が作成されるので、
 あとはこれをWindowsにコピーしてODINで焼けばよい。
 

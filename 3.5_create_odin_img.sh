@@ -8,4 +8,4 @@ wait
 mv FACTORYFS_SC02COMKF2.tar FACTORYFS_SC02COMKF2.tar.md5
 wait
 echo "created odin img : FACTORYFS_SC02COMKF2.tar.md5"
-echo "Complete : 3.5_creat_odin_img.sh" 
+echo "Complete : 3.5_create_odin_img.sh" 
